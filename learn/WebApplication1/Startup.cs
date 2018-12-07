@@ -6,15 +6,31 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
+using WebApplication1.Data;
+using Microsoft.Extensions;
+using Microsoft.Extensions.Configuration;
 
 namespace WebApplication1
 {
     public class Startup
     {
+
+        public Startup(IConfiguration configuration)
+        {
+            Configuration = configuration;
+        }
+
+        public IConfiguration Configuration { get; }
+
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDbContext<CmdbContext>(options =>
+               options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
+                       
+
             services.AddMvc();
         }
 
@@ -26,6 +42,7 @@ namespace WebApplication1
                 app.UseDeveloperExceptionPage();
             }
 
+            app.AddEfDiagrams<CmdbContext>();
             app.UseStaticFiles();
             app.UseCookiePolicy();
 
