@@ -42,6 +42,7 @@
                         <th>Fonction</th>
                         <th>Manager</th>
                         <th>Email</th>
+                        <th>Detail</th>
                     </tr>
                 </thead>
                 <tfoot>
@@ -53,6 +54,7 @@
                         <th>Fonction</th>
                         <th>Manager</th>
                         <th>Email</th>
+                        <th>Detail</th>
                     </tr>
                 </tfoot>
             </table>
@@ -71,14 +73,15 @@
 
 @section Scripts{
     <script>
-        //$(document).ready(function () {
-        //    $('.sidebar-menu').tree()
-        //})
-
-        var editor; // use a global for the submit and return data rendering in the examples
+        var editor; 
         var table;
 
         $(function () {
+
+            $('.sidebar-menu').tree();
+
+            
+
             editor = new $.fn.dataTable.Editor({
                 ajax: {
                     url: "@Url.Action("DataTableChange", "User")",
@@ -131,8 +134,13 @@
                         "name": "prenom"
                     },
                     {
-                        "label": "Statut:",
-                        "name": "statut"
+                        label: "Statut:",
+                        name: "statut",
+                        type: "select", placeholder: "Choisir un statut",
+                        //options: [
+                        //    "Actif",
+                        //    "Inactif"                            
+                        //]
                     },
                     {
                         "label": "Site:",
@@ -152,6 +160,36 @@
                     }
                 ]
             });
+
+
+            editor.on('initEdit', function (node, data, row, type) {
+                console.log(editor);
+                console.log(node, data, row, type);
+
+                var edf1 = editor.field('statut');
+                console.log(edf1);
+
+            var optionsA = [];
+            $.getJSON("LookupStatus", {
+                term: "-1"
+            },
+                function (data) {
+                    var option = {};
+                    $.each(data, function (i, e) {
+                        option.label = e.text;
+                        option.value = e.id;
+                        optionsA.push(option);
+                        option = {};
+                    });
+                }
+            ).done(function () { editor.field('statut').update(optionsA); });
+
+
+                var edf2 = editor.field('statut').option;
+                console.log(edf2);
+            });
+
+
 
             var table = $('#TablePerson').DataTable({
 
@@ -196,20 +234,19 @@
 
                 },
                 columns: [
+                    
                     { data: "nom" },
                     { data: "prenom" },
-                    { data: "statut" },
-                    { data: "site" },
+                    { data: "statut.text" },
+                    { data: "site.nom" },
                     { data: "fonction" },
-                    { data: "manager" },
+                    { data: "manager.email", defaultContent: "<i>Not set</i>" },
                     { data: "email" },   
-                    {
-                        data: null,
-                        className: "center",
-                        defaultContent: '<a href="" class="editor_edit">Edit</a> / <a href="" class="editor_remove">Delete</a>'
+                    { data: null, render: function (data, type, row) {
+                            // Combine the first and last names into a single table field
+                        return '<a href="Details/' + data.id + '">Detail</a>';
+                        }
                     }
-
-
                 ],
                 select: true,
                 buttons: [
@@ -250,8 +287,9 @@
                         }
                     });
                 }
-            });
-        });
+                });
+
+     });
 </script>
 }
 

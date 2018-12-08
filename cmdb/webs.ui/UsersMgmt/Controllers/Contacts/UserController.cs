@@ -31,7 +31,7 @@ namespace UsersMgmt.Controllers.Contacts
             int filteredResultsCount = 0;
             int totalResultsCount = 0;
 
-            var result = YourCustomSearchFunc(model, out filteredResultsCount, out totalResultsCount);
+            var result = FindPerson(model, out filteredResultsCount, out totalResultsCount);
 
 
             return Json(new
@@ -47,7 +47,7 @@ namespace UsersMgmt.Controllers.Contacts
         }
 
        
-        private List<Person> YourCustomSearchFunc(DataTableAjaxPostModel model, out int filteredResultsCount, out int totalResultsCount)
+        private List<Person> FindPerson(DataTableAjaxPostModel model, out int filteredResultsCount, out int totalResultsCount)
         {
             var searchBy = (model.search != null) ? model.search.value : null;
             var take = model.length;
@@ -83,13 +83,40 @@ namespace UsersMgmt.Controllers.Contacts
             if (ListOfCitations.Count() == 0)
             {
 
-                Person DefautPerson = new Person();
+                cmdb_model.tools.Statut status = new cmdb_model.tools.Statut();
+                status.id = 0;
+                status.statut = true;
+                
+                cmdb_model.contact.Site s = new Site();
+                s.id = 1;
+                s.Nom = "CSA";
+                s.Pays = "France";
+                s.Statut = status;
 
-                DefautPerson.nom = "BOUCHER";
-                DefautPerson.prenom = "Guillaume";                
-                DefautPerson.email = "guillaume.boucher@csa.fr";
 
-                ListOfCitations.Add(DefautPerson);
+                Person DefautPerson2 = new Person();
+                DefautPerson2.nom = "AUDA";
+                DefautPerson2.prenom = "Thierry";
+                DefautPerson2.email = "thierry.auda@csa.fr";
+                DefautPerson2.statut = status;
+                DefautPerson2.fonction = "DSI";
+                DefautPerson2.site = s;
+                ListOfCitations.Add(DefautPerson2);
+                
+
+                Person DefautPerson1 = new Person();
+                DefautPerson1.statut = status;
+                DefautPerson1.nom = "BOUCHER";
+                DefautPerson1.prenom = "Guillaume";                
+                DefautPerson1.email = "guillaume.boucher@csa.fr";
+                DefautPerson1.fonction = "Ingenieur Exploitation en charge des projets techniques";
+                DefautPerson1.manager = DefautPerson2;
+                DefautPerson1.site = s;
+
+
+                ListOfCitations.Add(DefautPerson1);
+
+
                 
                 context.Upsert<Person>(ListOfCitations);
             }
@@ -328,12 +355,33 @@ namespace UsersMgmt.Controllers.Contacts
             return View("Index");
         }
 
+        public JsonResult LookupStatus()
+        {
+            string data = " [\"Actif\",\"Inactif\"]";
 
-        //// GET: User/Details/5
-        //public ActionResult Details(int id)
-        //{
-        //    return View();
-        //}
+            return Json(new
+            {
+
+                options = data                            
+            
+            });
+
+            //return Json(new
+            //{
+            //    options: [
+            //        "Actif",
+            //        "Inactif"                            
+            //    ]
+            //});
+        }
+
+        // GET: User/Details/5
+        public ActionResult Details(int id)
+        {
+            Person curentPerson = context.GetDataById<Person>(id);
+
+            return View("Detail",curentPerson);
+        }
 
         //// GET: User/Create
         //public ActionResult Create()
